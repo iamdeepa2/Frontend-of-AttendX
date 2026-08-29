@@ -1,0 +1,243 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  color: #222;
+}
+
+/* Login */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f8;
+}
+
+.login-box {
+  width: 400px;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.login-box h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.login-box p {
+  margin-bottom: 25px;
+  color: #666;
+}
+
+.login-box input,
+.login-box select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.login-box button:hover {
+  background: #444;
+}
+
+/* Dashboard */
+
+.dashboard {
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+}
+
+.dashboard h1 {
+  margin-bottom: 8px;
+}
+
+.dashboard > p {
+  color: #666;
+  margin-bottom: 35px;
+}
+
+/* Cards */
+
+.cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.card {
+  width: 230px;
+  padding: 25px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.card p {
+  color: #666;
+}
+
+.card button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background: #444;
+}
+
+/* General Buttons */
+
+.dashboard > button {
+  padding: 11px 25px;
+  border: none;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+.dashboard > button:hover {
+  background: #444;
+}
+
+/* Forms */
+
+.attendance-form {
+  width: 400px;
+  margin: 30px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.attendance-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.attendance-form select,
+.attendance-form input {
+  width: 100%;
+  padding: 11px;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.attendance-form button {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+/* Tables */
+
+table {
+  width: 90%;
+  max-width: 900px;
+  margin: 25px auto;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+th,
+td {
+  padding: 13px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+th {
+  background: #222;
+  color: white;
+}
+
+td button {
+  margin: 3px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 5px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+/* Management Inputs */
+
+.dashboard > input {
+  padding: 11px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.dashboard > input + button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+.login-box h1 {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.login-box select {
+  background: white;
+}
+
+.login-box button {
+  font-weight: bold;
+}
+
+.dashboard h1 {
+  font-weight: bold;
+}
+
+.dashboard button {
+  font-weight: bold;
+}
