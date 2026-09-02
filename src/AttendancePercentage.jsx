@@ -1,124 +1,99 @@
-import { useState } from "react";
 
-function AttendancePercentage({ onBack }) {
-  const [subjects, setSubjects] = useState([
-    {
-      id: 1,
-      name: "Mathematics",
-      total: 10,
-      present: 8,
-      absent: 2,
-    },
-  ]);
+import { useEffect, useState } from "react";
 
-  const [name, setName] = useState("");
-  const [total, setTotal] = useState("");
-  const [present, setPresent] = useState("");
+function AttendancePercentage({ studentId, onBack }) {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  function addSubject() {
-    if (!name || !total || !present) {
-      alert("Please fill all fields");
+  useEffect(() => {
+    if (!studentId) {
+      setLoading(false);
       return;
     }
 
-    const totalClasses = Number(total);
-    const presentClasses = Number(present);
+    fetch(
+      `https://attendx-backend-t42y.onrender.com/api/attendance/?student_id=${studentId}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setRecords(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        alert("Backend is not connected");
+        setLoading(false);
+      });
+  }, [studentId]);
 
-    if (presentClasses > totalClasses) {
-      alert("Present classes cannot be greater than total classes");
-      return;
-    }
+  const total = records.length;
 
-    setSubjects([
-      ...subjects,
-      {
-        id: Date.now(),
-        name: name,
-        total: totalClasses,
-        present: presentClasses,
-        absent: totalClasses - presentClasses,
-      },
-    ]);
+  const present = records.filter(
+    (record) => record.present === true || record.present === 1
+  ).length;
 
-    setName("");
-    setTotal("");
-    setPresent("");
-  }
+  const percentage =
+    total > 0
+      ? Math.round((present / total) * 100)
+      : 0;
 
-  function deleteSubject(id) {
-    setSubjects(
-      subjects.filter((subject) => subject.id !== id)
+  if (loading) {
+    return (
+      <div className="student-dashboard">
+        <div className="welcome-box">
+          <h2>Loading Attendance...</h2>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="dashboard">
-      <h1>Attendance Percentage</h1>
+    <div className="student-dashboard">
 
-      <p>Check your attendance percentage</p>
+      <div className="dashboard-header">
+        <div>
+          <h1>Attendance Percentage</h1>
+          <p>Your overall attendance</p>
+        </div>
 
-      <div className="attendance-form">
-        <label>Subject</label>
-
-        <input
-          type="text"
-          placeholder="Enter subject"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <label>Total Classes</label>
-
-        <input
-          type="number"
-          placeholder="Enter total classes"
-          value={total}
-          onChange={(e) => setTotal(e.target.value)}
-        />
-
-        <label>Present Classes</label>
-
-        <input
-          type="number"
-          placeholder="Enter present classes"
-          value={present}
-          onChange={(e) => setPresent(e.target.value)}
-        />
-
-        <button onClick={addSubject}>
-          Add Subject
+        <button className="logout-btn" onClick={onBack}>
+          Back
         </button>
       </div>
 
-      {subjects.map((subject) => {
-        const percentage = Math.round(
-          (subject.present / subject.total) * 100
-        );
+      <div className="dashboard-content">
 
-        return (
-          <div className="card" key={subject.id}>
-            <h2>{subject.name}</h2>
+        <div className="welcome-box">
+          <h2>{percentage}%</h2>
 
-            <p>Total Classes: {subject.total}</p>
+          <p>
+            You attended {present} out of {total} classes.
+          </p>
+        </div>
 
-            <p>Present: {subject.present}</p>
+        <div className="cards">
 
-            <p>Absent: {subject.absent}</p>
-
-            <h2>Attendance: {percentage}%</h2>
-
-            <button
-              onClick={() => deleteSubject(subject.id)}
-            >
-              Delete
-            </button>
+          <div className="card">
+            <h2>Classes Attended</h2>
+            <p>{present}</p>
           </div>
-        );
-      })}
 
-      <button onClick={onBack}>
-        Back to Dashboard
-      </button>
+          <div className="card">
+            <h2>Total Classes</h2>
+            <p>{total}</p>
+          </div>
+
+        </div>
+
+        <button
+          className="primary-btn"
+          onClick={onBack}
+          style={{ marginTop: "25px" }}
+        >
+          Back to Dashboard
+        </button>
+
+      </div>
+
     </div>
   );
 }

@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function ManageSubjects() {
-  const [subjects, setSubjects] = useState([
-    { id: 101, name: "Mathematics" }
-  ]);
-
+  const [subjects, setSubjects] = useState([]);
   const [name, setName] = useState("");
+
+  useEffect(() => {
+    loadSubjects();
+  }, []);
+
+  function loadSubjects() {
+    fetch("https://attendx-backend-t42y.onrender.com/api/subjects/")
+      .then((response) => response.json())
+      .then((data) => setSubjects(data))
+      .catch(() => {
+        alert("Backend is not connected");
+      });
+  }
 
   function addSubject() {
     if (name.trim() === "") {
@@ -13,46 +23,83 @@ function ManageSubjects() {
       return;
     }
 
-    const newSubject = {
-      id: Date.now(),
-      name: name.trim()
-    };
-
-    setSubjects([...subjects, newSubject]);
-    setName("");
+    fetch("https://attendx-backend-t42y.onrender.com/api/subjects/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: name.trim(),
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        setName("");
+        loadSubjects();
+        alert("Subject added successfully!");
+      })
+      .catch(() => {
+        alert("Could not add subject");
+      });
   }
 
-  function editSubject(id) {
-    const subject = subjects.find((item) => item.id === id);
-
+  function editSubject(subject) {
     const newName = prompt(
       "Enter new subject name",
       subject.name
     );
 
-    if (newName && newName.trim() !== "") {
-      setSubjects(
-        subjects.map((item) =>
-          item.id === id
-            ? { ...item, name: newName.trim() }
-            : item
-        )
-      );
+    if (!newName || newName.trim() === "") {
+      return;
     }
+
+    fetch("https://attendx-backend-t42y.onrender.com/api/subjects/", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: subject.id,
+        name: newName.trim(),
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        loadSubjects();
+        alert("Subject updated successfully!");
+      });
   }
 
   function deleteSubject(id) {
-    setSubjects(
-      subjects.filter((item) => item.id !== id)
-    );
+    if (!window.confirm("Are you sure you want to delete this subject?")) {
+      return;
+    }
+
+    fetch("https://attendx-backend-t42y.onrender.com/api/subjects/", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        loadSubjects();
+        alert("Subject deleted successfully!");
+      });
   }
 
   return (
     <div className="dashboard">
+
       <h1>Manage Subjects</h1>
+
       <p>Add, view, edit and delete subjects</p>
 
       <div className="attendance-form">
+
         <label>Subject Name</label>
 
         <input
@@ -65,11 +112,13 @@ function ManageSubjects() {
         <button onClick={addSubject}>
           Add Subject
         </button>
+
       </div>
 
       <h2>Subject List</h2>
 
       <table>
+
         <thead>
           <tr>
             <th>ID</th>
@@ -79,29 +128,37 @@ function ManageSubjects() {
         </thead>
 
         <tbody>
+
           {subjects.map((subject, index) => (
             <tr key={subject.id}>
+
               <td>{index + 1}</td>
 
               <td>{subject.name}</td>
 
               <td>
-                <button onClick={() => editSubject(subject.id)}>
+
+                <button onClick={() => editSubject(subject)}>
                   Edit
                 </button>
 
                 <button onClick={() => deleteSubject(subject.id)}>
                   Delete
                 </button>
+
               </td>
+
             </tr>
           ))}
+
         </tbody>
+
       </table>
 
       <button onClick={() => window.location.reload()}>
         Back to Dashboard
       </button>
+
     </div>
   );
 }

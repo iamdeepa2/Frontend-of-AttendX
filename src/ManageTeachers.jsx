@@ -1,59 +1,130 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function ManageTeachers() {
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: "Sita", email: "sita@gmail.com" },
-  ]);
-
+  const [teachers, setTeachers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
+
+  function loadTeachers() {
+    fetch("https://attendx-backend-t42y.onrender.com/api/teachers/")
+      .then((response) => response.json())
+      .then((data) => setTeachers(data))
+      .catch(() => {
+        alert("Backend is not connected");
+      });
+  }
 
   function addTeacher() {
-    if (!name || !email) {
-      alert("Please enter name and email");
+    if (!name || !email || !password) {
+      alert("Please fill all fields");
       return;
     }
 
-    setTeachers([
-      ...teachers,
-      {
-        id: teachers.length + 1,
+    fetch("https://attendx-backend-t42y.onrender.com/api/teachers/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         name: name,
         email: email,
-      },
-    ]);
+        password: password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Teacher added successfully!");
 
-    setName("");
-    setEmail("");
+          setName("");
+          setEmail("");
+          setPassword("");
+
+          loadTeachers();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(() => {
+        alert("Could not add teacher");
+      });
+  }
+
+  function editTeacher(teacher) {
+    const newName = prompt(
+      "Enter new teacher name",
+      teacher.name
+    );
+
+    const newEmail = prompt(
+      "Enter new teacher email",
+      teacher.email
+    );
+
+    if (!newName || !newEmail) {
+      return;
+    }
+
+    fetch(`https://attendx-backend-t42y.onrender.com/api/teachers/${teacher.id}/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newName,
+        email: newEmail,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Teacher updated successfully!");
+          loadTeachers();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(() => {
+        alert("Could not update teacher");
+      });
   }
 
   function deleteTeacher(id) {
-    setTeachers(teachers.filter((teacher) => teacher.id !== id));
-  }
-
-  function editTeacher(id) {
-    const teacher = teachers.find((teacher) => teacher.id === id);
-
-    const newName = prompt("Enter new name", teacher.name);
-    const newEmail = prompt("Enter new email", teacher.email);
-
-    if (newName && newEmail) {
-      setTeachers(
-        teachers.map((teacher) =>
-          teacher.id === id
-            ? { ...teacher, name: newName, email: newEmail }
-            : teacher
-        )
-      );
+    if (!window.confirm("Are you sure you want to delete this teacher?")) {
+      return;
     }
+
+    fetch(`https://attendx-backend-t42y.onrender.com/api/teachers/${id}/`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Teacher deleted successfully!");
+          loadTeachers();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(() => {
+        alert("Could not delete teacher");
+      });
   }
 
   return (
     <div className="dashboard">
+
       <h1>Manage Teachers</h1>
+
       <p>Add, view, edit and delete teachers</p>
 
       <div className="attendance-form">
+
         <label>Teacher Name</label>
 
         <input
@@ -72,12 +143,25 @@ function ManageTeachers() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <button onClick={addTeacher}>Add Teacher</button>
+        <label>Password</label>
+
+        <input
+          type="password"
+          placeholder="Enter password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button onClick={addTeacher}>
+          Add Teacher
+        </button>
+
       </div>
 
       <h2>Teacher List</h2>
 
       <table>
+
         <thead>
           <tr>
             <th>ID</th>
@@ -88,29 +172,45 @@ function ManageTeachers() {
         </thead>
 
         <tbody>
+
           {teachers.map((teacher) => (
             <tr key={teacher.id}>
+
               <td>{teacher.id}</td>
+
               <td>{teacher.name}</td>
+
               <td>{teacher.email}</td>
 
               <td>
-                <button onClick={() => editTeacher(teacher.id)}>
+
+                <button onClick={() => editTeacher(teacher)}>
                   Edit
                 </button>
 
                 <button onClick={() => deleteTeacher(teacher.id)}>
                   Delete
                 </button>
+
               </td>
+
             </tr>
           ))}
+
         </tbody>
+
       </table>
+
+      {teachers.length === 0 && (
+        <p>No teachers found.</p>
+      )}
+
+      <br />
 
       <button onClick={() => window.location.reload()}>
         Back to Dashboard
       </button>
+
     </div>
   );
 }

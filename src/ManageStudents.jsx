@@ -1,98 +1,144 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-function ManageSubjects() {
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: "Mathematics" }
-  ]);
-
+function ManageStudents() {
+  const [students, setStudents] = useState([]);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const addSubject = () => {
-    if (name.trim() === "") {
-      alert("Please enter subject name");
+  function loadStudents() {
+    fetch("https://attendx-backend-t42y.onrender.com/api/students/")
+      .then((response) => response.json())
+      .then((data) => setStudents(data))
+      .catch(() => {
+        alert("Backend is not connected");
+      });
+  }
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  function addStudent() {
+    if (!name || !email || !password) {
+      alert("Please fill all fields");
       return;
     }
 
-    setSubjects((oldSubjects) => [
-      ...oldSubjects,
-      {
-        id: oldSubjects.length + 1,
-        name: name.trim()
-      }
-    ]);
+    fetch("https://attendx-backend-t42y.onrender.com/api/students/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        password: password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Student added successfully!");
 
-    setName("");
-  };
+          setName("");
+          setEmail("");
+          setPassword("");
 
-  const deleteSubject = (id) => {
-    setSubjects((oldSubjects) =>
-      oldSubjects.filter((subject) => subject.id !== id)
-    );
-  };
+          loadStudents();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(() => {
+        alert("Could not add student");
+      });
+  }
 
-  const editSubject = (id) => {
-    const subject = subjects.find((item) => item.id === id);
-
-    const newName = prompt("Enter new subject name:", subject.name);
-
-    if (newName && newName.trim() !== "") {
-      setSubjects((oldSubjects) =>
-        oldSubjects.map((item) =>
-          item.id === id
-            ? { ...item, name: newName.trim() }
-            : item
-        )
-      );
+  function deleteStudent(id) {
+    if (!window.confirm("Delete this student?")) {
+      return;
     }
-  };
+
+    fetch(`https://attendx-backend-t42y.onrender.com/api/students/${id}/`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Student deleted");
+          loadStudents();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(() => {
+        alert("Could not delete student");
+      });
+  }
 
   return (
     <div className="dashboard">
-      <h1>Manage Subjects</h1>
-      <p>Add, view, edit and delete subjects</p>
+      <h1>Manage Students</h1>
+
+      <p>Add, view and delete students</p>
 
       <div className="attendance-form">
-        <label>Subject Name</label>
+
+        <label>Student Name</label>
 
         <input
           type="text"
-          placeholder="Enter subject name"
+          placeholder="Student Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <button type="button" onClick={addSubject}>
-          Add Subject
+        <label>Student Email</label>
+
+        <input
+          type="email"
+          placeholder="Student Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <label>Password</label>
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button onClick={addStudent}>
+          Add Student
         </button>
       </div>
 
-      <h2>Subject List</h2>
+      <h2>Student List</h2>
 
       <table>
         <thead>
           <tr>
             <th>ID</th>
-            <th>Subject</th>
+            <th>Name</th>
+            <th>Email</th>
             <th>Action</th>
           </tr>
         </thead>
 
         <tbody>
-          {subjects.map((subject) => (
-            <tr key={subject.id}>
-              <td>{subject.id}</td>
-              <td>{subject.name}</td>
+          {students.map((student) => (
+            <tr key={student.id}>
+              <td>{student.id}</td>
+              <td>{student.name}</td>
+              <td>{student.email}</td>
+
               <td>
                 <button
-                  type="button"
-                  onClick={() => editSubject(subject.id)}
-                >
-                  Edit
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => deleteSubject(subject.id)}
+                  onClick={() => deleteStudent(student.id)}
                 >
                   Delete
                 </button>
@@ -102,11 +148,17 @@ function ManageSubjects() {
         </tbody>
       </table>
 
-      <button type="button" onClick={() => window.location.reload()}>
+      {students.length === 0 && (
+        <p>No students found.</p>
+      )}
+
+      <br />
+
+      <button onClick={() => window.location.reload()}>
         Back to Dashboard
       </button>
     </div>
   );
 }
 
-export default ManageSubjects;
+export default ManageStudents;
