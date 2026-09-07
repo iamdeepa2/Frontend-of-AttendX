@@ -4,10 +4,12 @@ import { api } from "../api/client";
 import DashboardLayout from "../components/DashboardLayout";
 
 export default function TeacherDashboard({ user, onLogout }) {
-  const { data: students = [] } = useAsync(() => api.getStudents(), []);
-  const { data: subjects = [] } = useAsync(() => api.getSubjects(), []);
+  const { data: studentData } = useAsync(() => api.getStudents(), []);
+  const { data: subjectData } = useAsync(() => api.getSubjects(), []);
   const { data: records, loading, reload } =
     useAsync(() => api.getAttendance({ teacherId: user.id }), [user.id]);
+  const stu = studentData || [];
+  const subs = subjectData || [];
 
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -18,7 +20,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const dates = [...new Set((records || []).map(r => r.date))].sort();
   const filtered = filterDate ? (records || []).filter(r => r.date === filterDate) : records;
-  const byStudent = Object.fromEntries(students.map(s => {
+  const byStudent = Object.fromEntries(stu.map(s => {
     const m = {};
     (filtered || []).filter(r => r.student_id === s.id)
       .forEach(r => { m[r.subject_id] = r.present; });
@@ -32,7 +34,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   async function save() {
     setMessage("");
     if (!date || !subject) return setMessage("Select a date and a subject first.");
-    const marked = students.filter(s => marks[s.id] != null);
+    const marked = stu.filter(s => marks[s.id] != null);
     if (!marked.length) return setMessage("Mark at least one student as present or absent.");
     setSaving(true);
     try {
@@ -61,14 +63,14 @@ export default function TeacherDashboard({ user, onLogout }) {
         <input type="date" value={date} onChange={e => setDate(e.target.value)} />
         <select value={subject} onChange={e => setSubject(e.target.value)}>
           <option value="">Select Subject</option>
-          {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {subs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
 
         <div className="attendance-table">
           <table>
             <thead><tr><th>Student</th><th>Present</th><th>Absent</th></tr></thead>
             <tbody>
-              {students.map(s => (
+              {stu.map(s => (
                 <tr key={s.id}>
                   <td>{s.name}</td>
                   <td><input type="radio" name={`attendance-${s.id}`} checked={marks[s.id] === true}
@@ -100,14 +102,14 @@ export default function TeacherDashboard({ user, onLogout }) {
             <thead>
               <tr>
                 <th>Student</th>
-                {subjects.map(s => <th key={s.id}>{s.name}</th>)}
+                {subs.map(s => <th key={s.id}>{s.name}</th>)}
                 <th>Attendance</th>
               </tr>
             </thead>
             <tbody>
-              {students.map(s => {
+              {stu.map(s => {
                 const m = byStudent[s.id] || {};
-                const counts = subjects.reduce((a, sub) => {
+                const counts = subs.reduce((a, sub) => {
                   if (m[sub.id] === true) a.pre++; else if (m[sub.id] === false) a.abs++;
                   return a;
                 }, { pre: 0, abs: 0 });
@@ -115,7 +117,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 return (
                   <tr key={s.id}>
                     <td>{s.name}</td>
-                    {subjects.map(sub => {
+                    {subs.map(sub => {
                       const v = m[sub.id];
                       return (
                         <td key={sub.id} className="matrix-cell">

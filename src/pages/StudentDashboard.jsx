@@ -16,9 +16,11 @@ function Tbl({ head, rows, empty = "No records." }) {
 
 export default function StudentDashboard({ user, onLogout }) {
   const { data: records, loading } = useAsync(() => api.getAttendance({ studentId: user.id }), [user.id]);
-  const { data: subjects = [] } = useAsync(() => api.getSubjects(), []);
-  const { data: teachers = [] } = useAsync(() => api.getTeachers(), []);
-  const sName = Object.fromEntries(subjects.map(s => [s.id, s.name]));
+  const { data: subjects } = useAsync(() => api.getSubjects(), []);
+  const { data: teachers } = useAsync(() => api.getTeachers(), []);
+  const subj = subjects || [];
+  const teach = teachers || [];
+  const sName = Object.fromEntries(subj.map(s => [s.id, s.name]));
 
   const by = {};
   let pre = 0, abs = 0;
@@ -54,12 +56,12 @@ export default function StudentDashboard({ user, onLogout }) {
       })} />
 
       <h2>Teachers & Subjects</h2>
-      <Tbl head={["Teacher", "Email", "Contact Number"]} rows={teachers.map(t =>
+      <Tbl head={["Teacher", "Email", "Contact Number"]} rows={teach.map(t =>
         <tr key={t.id}><td>{t.name}</td><td>{t.email}</td><td>{t.phone || "-"}</td></tr>
       )} />
 
       <h2>Available Subjects</h2>
-      <Tbl head={["Subject"]} empty="No subjects available." rows={subjects.map(s =>
+      <Tbl head={["Subject"]} empty="No subjects available." rows={subj.map(s =>
         <tr key={s.id}><td>{s.name}</td></tr>
       )} />
     </DashboardLayout>
