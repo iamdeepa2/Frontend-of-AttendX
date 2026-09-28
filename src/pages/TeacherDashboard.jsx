@@ -6,10 +6,40 @@ import DashboardLayout from "../components/DashboardLayout";
 export default function TeacherDashboard({ user, onLogout }) {
   const { data: studentData } = useAsync(() => api.getStudents(), []);
   const { data: subjectData } = useAsync(() => api.getSubjects(), []);
-  const { data: records, loading, reload } =
-    useAsync(() => api.getAttendance({ teacherId: user.id }), [user.id]);
+  const { data: classroomData } = useAsync(
+    () => api.getTeacherClassrooms(user.id), [user.id]
+  );
+
+  const [classroomId, setClassroomId] = useState("");
+  const activeClassroom = classroomId || "";
+  const [recordClassroomId, setRecordClassroomId] = useState("");
+
+  const { data: records, loading, reload } = useAsync(
+    () => api.getAttendance({
+      teacherId: user.id,
+      classroomId: recordClassroomId || undefined,
+    }),
+    [user.id, recordClassroomId]
+  );
+
+  // Subjects are classroom specific: the same teacher teaches different
+  // subjects in different classrooms, so the picker follows the classroom.
+  const { data: teaching } = useAsync(
+    () => activeClassroom
+      ? api.getTeacherSubjects(Number(activeClassroom), user.id)
+      : Promise.resolve(null),
+    [activeClassroom, user.id]
+  );
+
+  const rooms = classroomData?.classrooms || [];
+  const assigned = teaching?.subjects || [];
   const stu = studentData || [];
-  const subs = subjectData || [];
+
+  // A teacher with no teaching assignment in this classroom keeps the
+  // classroom's subjects, so nobody is locked out of marking attendance.
+  const subs = assigned.length
+    ? assigned
+    : (teaching?.available_subjects || []);
 
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -17,6 +47,27 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [filterDate, setFilterDate] = useState("");
+
+  // A classroom switch invalidates the picked subject and marks.
+  function chooseClassroom(value) {
+    setClassroomId(value);
+    setSubject("");
+    setMarks({});
+  }
+
+  function chooseRecordClassroom(value) {
+    setRecordClassroomId(value);
+    setFilterDate("");
+  }
+
+  // Saved attendance shows the subjects actually recorded, so rows written
+  // before the classroom column existed still appear.
+  const subjectNames = Object.fromEntries(
+    (subjectData || []).map(s => [s.id, s.name])
+  );
+  const recordSubs = [...new Set((records || []).map(r => r.subject_id))]
+    .sort((a, b) => (subjectNames[a] || "").localeCompare(subjectNames[b] || ""))
+    .map(id => ({ id, name: subjectNames[id] || `Subject ${id}` }));
 
   const dates = [...new Set((records || []).map(r => r.date))].sort();
   const filtered = filterDate ? (records || []).filter(r => r.date === filterDate) : records;
@@ -41,6 +92,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       await Promise.all(marked.map(s => api.markAttendance({
         teacher_id: user.id, student_id: s.id, subject_id: Number(subject), date,
         present: marks[s.id],
+        ...(activeClassroom ? { classroom_id: Number(activeClassroom) } : {}),
       })));
       setMarks({}); setSubject(""); setDate("");
       setMessage("Attendance saved successfully.");
@@ -60,11 +112,31 @@ export default function TeacherDashboard({ user, onLogout }) {
 
       <div className="attendance-box">
         <h3>Mark Attendance</h3>
+        {rooms.length > 0 && (
+          <div className="attendance-filter">
+            <label htmlFor="mark-classroom">Classroom:</label>
+            <select
+              id="mark-classroom"
+              value={activeClassroom}
+              onChange={e => chooseClassroom(e.target.value)}
+            >
+              <option value="">Select Classroom</option>
+              {rooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-        <select value={subject} onChange={e => setSubject(e.target.value)}>
+        <select
+          value={subject}
+          onChange={e => setSubject(e.target.value)}
+          disabled={!activeClassroom}
+        >
           <option value="">Select Subject</option>
           {subs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
+        {activeClassroom && !subs.length && (
+          <p className="info-hint">No subjects are assigned to you in this classroom yet.</p>
+        )}
 
         <div className="attendance-table">
           <table>
@@ -89,6 +161,18 @@ export default function TeacherDashboard({ user, onLogout }) {
       <h2>My Saved Attendance</h2>
 
       <div className="attendance-filter">
+        <label htmlFor="filter-classroom">Classroom:</label>
+        <select
+          id="filter-classroom"
+          value={recordClassroomId}
+          onChange={e => chooseRecordClassroom(e.target.value)}
+        >
+          <option value="">All classrooms</option>
+          {rooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+
+      <div className="attendance-filter">
         <label htmlFor="filter-date">Filter by date:</label>
         <select id="filter-date" value={filterDate} onChange={e => setFilterDate(e.target.value)}>
           <option value="">All dates</option>
@@ -102,14 +186,14 @@ export default function TeacherDashboard({ user, onLogout }) {
             <thead>
               <tr>
                 <th>Student</th>
-                {subs.map(s => <th key={s.id}>{s.name}</th>)}
+                {recordSubs.map(s => <th key={s.id}>{s.name}</th>)}
                 <th>Attendance</th>
               </tr>
             </thead>
             <tbody>
               {stu.map(s => {
                 const m = byStudent[s.id] || {};
-                const counts = subs.reduce((a, sub) => {
+                const counts = recordSubs.reduce((a, sub) => {
                   if (m[sub.id] === true) a.pre++; else if (m[sub.id] === false) a.abs++;
                   return a;
                 }, { pre: 0, abs: 0 });
@@ -117,7 +201,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 return (
                   <tr key={s.id}>
                     <td>{s.name}</td>
-                    {subs.map(sub => {
+                    {recordSubs.map(sub => {
                       const v = m[sub.id];
                       return (
                         <td key={sub.id} className="matrix-cell">
