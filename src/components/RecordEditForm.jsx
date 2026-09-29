@@ -53,7 +53,7 @@ export default function RecordEditForm({ kind, record, busy, onSave, onCancel })
     <form className="inline-panel" onSubmit={submit}>
       <h4>Edit {label}</h4>
       {editFields(kind).map(f => (
-        <div key={f.key}>
+        <div className="field" key={f.key}>
           <label htmlFor={`edit-${kind}-${record.id}-${f.key}`}>{f.label}</label>
           <input
             id={`edit-${kind}-${record.id}-${f.key}`}
@@ -69,7 +69,9 @@ export default function RecordEditForm({ kind, record, busy, onSave, onCancel })
         <button type="submit" disabled={busy}>
           {busy ? "Saving..." : `Save ${label}`}
         </button>
-        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="button" className="btn-secondary" onClick={onCancel}>
+          Cancel
+        </button>
       </div>
       <p className="info-hint">
         Saves to the existing {kind} record. Classroom assignment and attendance stay unchanged.

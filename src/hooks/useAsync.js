@@ -1,24 +1,42 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
+/**
+ * Runs one async task and exposes its data, error and loading state.
+ *
+ * `task` is re-run whenever `deps` change, and again whenever `reload()` is
+ * called. The last result stays on screen while a reload is in flight.
+ */
 export default function useAsync(task, deps = []) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [v, setV] = useState(0);
-  const ref = useRef(task);
-  useEffect(() => { ref.current = task; });
-  const sig = JSON.stringify(deps);
+  const [run, setRun] = useState(0);
 
   useEffect(() => {
-    let off = false;
-    ref.current().then(d => !off && setData(d))
-      .catch(e => !off && setError(e.message || "Something went wrong"))
-      .finally(() => !off && setLoading(false));
-    return () => { off = true; };
-  }, [sig, v]);
+    let active = true;
 
-  return {
-    data, error, loading, setData,
-    reload: () => { setLoading(true); setError(null); setV(x => x + 1); },
-  };
+    task().then(
+      (value) => {
+        if (!active) return;
+        setData(value);
+        setError(null);
+      },
+      (err) => active && setError(err.message || "Something went wrong")
+    ).finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
+    // `task` is rebuilt on every render, so the caller's `deps` decide when
+    // the request is repeated. `run` adds manual reloads on top.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, run]);
+
+  function reload() {
+    setLoading(true);
+    setError(null);
+    setRun(n => n + 1);
+  }
+
+  return { data, error, loading, setData, reload };
 }

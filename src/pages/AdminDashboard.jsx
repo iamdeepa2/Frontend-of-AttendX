@@ -3,40 +3,58 @@ import useAsync from "../hooks/useAsync";
 import { api } from "../api/client";
 import DashboardLayout from "../components/DashboardLayout";
 import ClassroomDetails from "./ClassroomDetails";
+import { PageHeader, StatCard, EmptyState, LoadingState } from "../components/ui";
+
+const NAV = [
+  { id: "classrooms", label: "Classrooms", icon: "classroom" },
+  { id: "students", label: "Students", icon: "users" },
+  { id: "teachers", label: "Teachers", icon: "user" },
+  { id: "subjects", label: "Subjects", icon: "book" },
+];
 
 export default function AdminDashboard({ user, onLogout }) {
   const cls = useAsync(() => api.getClassrooms(), []);
+  const students = useAsync(() => api.getStudents(), []);
+  const teachers = useAsync(() => api.getTeachers(), []);
+  const subjects = useAsync(() => api.getSubjects(), []);
 
-  const [formMode, setFormMode] = useState(null);
+  // null = form closed, "new" = adding, otherwise the id being edited.
   const [editing, setEditing] = useState(null);
   const [viewId, setViewId] = useState(null);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const isEdit = formMode === "edit";
+  const isEdit = editing !== null && editing !== "new";
 
-  function reset() {
-    setFormMode(null); setEditing(null); setName(""); setError("");
-  }
+  const count = d => (Array.isArray(d) ? d.length : null);
 
   function openAdd() {
-    setFormMode("add"); setEditing(null); setName(""); setError("");
+    setEditing("new");
+    setName("");
+    setError("");
   }
 
   function openEdit(classroom) {
-    setFormMode("edit"); setEditing(classroom.id); setName(classroom.name || ""); setError("");
+    setEditing(classroom.id);
+    setName(classroom.name || "");
+    setError("");
+  }
+
+  function closeForm() {
+    setEditing(null);
+    setName("");
+    setError("");
   }
 
   async function submit(e) {
     e.preventDefault();
-    setError("");
     if (!name.trim()) return setError("Enter a classroom name.");
     setSaving(true);
     try {
       if (isEdit) await api.updateClassroom({ id: editing, name: name.trim() });
       else await api.createClassroom(name.trim());
       await cls.reload();
-      reset();
+      closeForm();
     } catch (err) {
       setError(err.message || "Failed to save.");
     } finally {
@@ -61,7 +79,7 @@ export default function AdminDashboard({ user, onLogout }) {
     return (
       <ClassroomDetails
         classroomId={viewId}
-        userName={user.name}
+        user={user}
         onLogout={onLogout}
         onBack={() => setViewId(null)}
         onChanged={cls.reload}
@@ -70,68 +88,119 @@ export default function AdminDashboard({ user, onLogout }) {
   }
 
   const rows = cls.data || [];
+  const navItems = NAV.map(n => ({ ...n, active: true }));
 
   return (
-    <DashboardLayout userName={user.name} onLogout={onLogout}>
-      <h2>Admin Dashboard</h2>
-      <p className="page-subtitle">Choose a classroom to manage its students, teachers and subjects.</p>
+    <DashboardLayout
+      user={user}
+      title="Admin Dashboard"
+      breadcrumb="Overview"
+      navItems={navItems}
+      onLogout={onLogout}
+    >
+      <PageHeader
+        title={`Welcome back, ${user.name}`}
+        subtitle="Manage your attendance system from one place."
+      />
 
-      <section className="admin-section">
-        <div className="section-head">
-          <h2>Classrooms</h2>
-          <button onClick={openAdd}>Add classroom</button>
-        </div>
+      <div className="stat-grid">
+        <StatCard icon="users" label="Students" value={count(students.data) ?? "—"} tone="" />
+        <StatCard icon="user" label="Teachers" value={count(teachers.data) ?? "—"} tone="tone-slate" />
+        <StatCard icon="book" label="Subjects" value={count(subjects.data) ?? "—"} tone="tone-slate" />
+        <StatCard icon="classroom" label="Classrooms" value={count(cls.data) ?? "—"} tone="tone-amber" />
+      </div>
 
-        {formMode && (
-          <form className="form-box" onSubmit={submit}>
-            <h3>{isEdit ? "Edit" : "Add"} classroom</h3>
-            <label htmlFor="classroom-name">Name</label>
-            <input id="classroom-name" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-            {error && <p className="error-text">{error}</p>}
-            <div className="form-actions">
-              <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save"}</button>
-              <button type="button" onClick={reset}>Cancel</button>
-            </div>
-          </form>
-        )}
-
-        {cls.loading && !cls.data ? (
-          <div className="loading">Loading classrooms...</div>
-        ) : rows.length ? (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Classroom</th>
-                  <th>Students</th>
-                  <th>Teachers</th>
-                  <th>Subjects</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(row => (
-                  <tr key={row.id}>
-                    <td>
-                      <button className="link-btn" onClick={() => setViewId(row.id)}>{row.name}</button>
-                    </td>
-                    <td>{row.student_count ?? 0}</td>
-                    <td>{row.teacher_count ?? 0}</td>
-                    <td>{row.subject_count ?? 0}</td>
-                    <td>
-                      <button onClick={() => openEdit(row)}>Edit</button>
-                      <button className="btn-danger" onClick={() => del(row)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <section className="admin-section" id="classrooms">
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Classrooms</h3>
+            <button type="button" onClick={openAdd}>
+              <span aria-hidden="true">+</span> Add classroom
+            </button>
           </div>
-        ) : (
-          <p className="empty-state">No classrooms yet. Use &ldquo;Add classroom&rdquo; to create one.</p>
-        )}
 
-        {error && !isEdit && <p className="error-text">{error}</p>}
+          <div className="panel-body">
+            {editing !== null && (
+              <form className="form-box" onSubmit={submit}>
+                <h3>{isEdit ? "Edit" : "Add"} classroom</h3>
+                <div className="field">
+                  <label htmlFor="classroom-name">Name</label>
+                  <input
+                    id="classroom-name"
+                    placeholder="e.g. BCA 2nd Semester"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
+                </div>
+                {error && <p className="error-text">{error}</p>}
+                <div className="form-actions">
+                  <button type="submit" disabled={saving}>
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={closeForm}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {cls.loading && !cls.data ? (
+              <LoadingState label="Loading classrooms..." />
+            ) : rows.length ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Classroom</th>
+                      <th>Students</th>
+                      <th>Teachers</th>
+                      <th>Subjects</th>
+                      <th className="actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map(row => (
+                      <tr key={row.id}>
+                        <td>
+                          <button className="link-btn" onClick={() => setViewId(row.id)}>
+                            {row.name}
+                          </button>
+                        </td>
+                        <td>{row.student_count ?? 0}</td>
+                        <td>{row.teacher_count ?? 0}</td>
+                        <td>{row.subject_count ?? 0}</td>
+                        <td className="actions">
+                          <button type="button" className="btn-secondary btn-sm" onClick={() => openEdit(row)}>
+                            Edit
+                          </button>
+                          <button type="button" className="btn-danger btn-sm" onClick={() => del(row)}>
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <EmptyState
+                title="No classrooms yet"
+                text='Use "Add classroom" to create your first classroom and start assigning students, teachers and subjects.'
+                action={
+                  <button type="button" onClick={openAdd}>
+                    Add classroom
+                  </button>
+                }
+              />
+            )}
+
+            {error && editing === null && (
+              <p className="error-text" style={{ marginTop: 12 }}>
+                {error}
+              </p>
+            )}
+          </div>
+        </div>
       </section>
     </DashboardLayout>
   );
