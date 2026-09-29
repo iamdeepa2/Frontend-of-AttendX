@@ -81,6 +81,8 @@ export const api = {
   updateTeacher: teachers.update,
   deleteTeacher: teachers.remove,
   getTeacherClassrooms: (teacherId) => req(`/teachers/${teacherId}/classrooms/`),
+  getTeacherClassroom: (teacherId, classroomId) =>
+    req(`/teachers/${teacherId}/classrooms/${classroomId}/`),
 
   getSubjects: subjects.list,
   createSubject: (name, classroomId) =>

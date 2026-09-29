@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useState } from "react";
 import useAsync from "../hooks/useAsync";
 import { api } from "../api/client";
@@ -37,9 +38,7 @@ function StatusToggle({ value, onChange, studentName }) {
 }
 
 export default function TeacherDashboard({ user, onLogout }) {
-  const { data: studentData } = useAsync(() => api.getStudents(), []);
-  const { data: subjectData } = useAsync(() => api.getSubjects(), []);
-  const { data: classroomData } = useAsync(
+  const { data: classroomData, error: classroomError, loading: classroomsLoading } = useAsync(
     () => api.getTeacherClassrooms(user.id),
     [user.id]
   );
@@ -47,49 +46,46 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [classroomId, setClassroomId] = useState("");
   const [recordClassroomId, setRecordClassroomId] = useState("");
 
-  const { data: records, loading, reload } = useAsync(
-    () =>
-      api.getAttendance({
+  const { data: recordData, error: recordError, loading, reload, setData: setRecordData } = useAsync(
+    async () => ({
+      classroomId: recordClassroomId,
+      rows: await api.getAttendance({
         teacherId: user.id,
         classroomId: recordClassroomId || undefined,
       }),
+    }),
     [user.id, recordClassroomId]
   );
 
-  // Subjects are classroom specific: the same teacher teaches different
-  // subjects in different classrooms, so the picker follows the classroom.
-  const { data: teaching } = useAsync(
-    () =>
-      classroomId
-        ? api.getTeacherSubjects(Number(classroomId), user.id)
-        : Promise.resolve(null),
+  const { data: teaching, error: teachingError, setData: setTeaching } = useAsync(
+    () => classroomId
+      ? api.getTeacherClassroom(user.id, Number(classroomId))
+      : Promise.resolve(null),
     [classroomId, user.id]
   );
 
   const rooms = classroomData?.classrooms || [];
-  const assigned = teaching?.subjects || [];
-  const stu = studentData || [];
-
-  // A teacher with no teaching assignment in this classroom keeps the
-  // classroom's subjects, so nobody is locked out of marking attendance.
-  const subs = assigned.length ? assigned : teaching?.available_subjects || [];
+  const selectionReady = !teachingError && teaching?.classroom_id === Number(classroomId);
+  const stu = selectionReady ? teaching.students : [];
+  const subs = selectionReady ? teaching.subjects : [];
+  const records = !recordError && recordData?.classroomId === recordClassroomId ? recordData.rows : [];
 
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
   const [marks, setMarks] = useState({});
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageTone, setMessageTone] = useState("info");
   const [filterDate, setFilterDate] = useState("");
 
   // A classroom switch invalidates the picked subject and marks.
   function chooseClassroom(value) {
+    setTeaching(null);
     setClassroomId(value);
     setSubject("");
     setMarks({});
   }
 
   function chooseRecordClassroom(value) {
+    setRecordData(null);
     setRecordClassroomId(value);
     setFilterDate("");
   }
@@ -101,28 +97,28 @@ export default function TeacherDashboard({ user, onLogout }) {
   const markedCount = stu.filter(s => marks[s.id] != null).length;
   const presentCount = stu.filter(s => marks[s.id] === true).length;
 
-  // Saved attendance shows the subjects actually recorded, so rows written
-  // before the classroom column existed still appear.
-  const saved = records || [];
+  // Build the saved table exclusively from the teacher-scoped API response.
+  const saved = records;
+  const recordStudents = [...new Map(saved.map(r => [r.student_id, {
+    id: r.student_id, name: r.student_name,
+  }])).values()];
   const { columns, dates, marks: byStudent } = attendanceTable({
     saved,
     shown: filterDate ? saved.filter(r => r.date === filterDate) : saved,
-    names: Object.fromEntries((subjectData || []).map(s => [s.id, s.name])),
-    students: stu,
+    names: Object.fromEntries(saved.map(r => [r.subject_id, r.subject_name])),
+    students: recordStudents,
   });
 
   async function save() {
-    if (!date || !subject) {
-      setMessageTone("error");
-      return setMessage("Select a date and a subject first.");
+    if (!date || !classroomId || !selectionReady || !subs.some(s => s.id === Number(subject))) {
+      return toast.error("Select an assigned classroom, subject and date first.");
     }
     const marked = stu.filter(s => marks[s.id] != null);
     if (!marked.length) {
-      setMessageTone("error");
-      return setMessage("Mark at least one student as present or absent.");
+      return toast.error("Mark at least one student as present or absent.");
     }
     setSaving(true);
-    setMessage("");
+    const toastId = toast.loading("Saving attendance...");
     try {
       await Promise.all(
         marked.map(s =>
@@ -132,19 +128,17 @@ export default function TeacherDashboard({ user, onLogout }) {
             subject_id: Number(subject),
             date,
             present: marks[s.id],
-            ...(classroomId ? { classroom_id: Number(classroomId) } : {}),
+            classroom_id: Number(classroomId),
           })
         )
       );
       setMarks({});
       setSubject("");
       setDate("");
-      setMessageTone("success");
-      setMessage("Attendance saved successfully.");
+      toast.success("Attendance saved successfully.", { id: toastId });
       await reload();
     } catch (err) {
-      setMessageTone("error");
-      setMessage(err.message || "Failed to save attendance.");
+      toast.error(err.message || "Failed to save attendance.", { id: toastId });
     } finally {
       setSaving(false);
     }
@@ -168,12 +162,11 @@ export default function TeacherDashboard({ user, onLogout }) {
         subtitle="Select a classroom, subject and date, then mark each student present or absent."
       />
 
-      {message && (
-        <div className={messageTone === "error" ? "error-banner" : "info-banner"} role="status">
-          {message}
-        </div>
+      {classroomError && <div className="error-banner" role="alert">{classroomError}</div>}
+      {!classroomsLoading && !classroomError && !rooms.length && (
+        <EmptyState title="No teaching assignments" text="Ask your admin to assign a classroom and subject to your account." />
       )}
-
+      {teachingError && classroomId && <div className="error-banner" role="alert">{teachingError}</div>}
       <section className="attendance-box" id="mark-attendance">
         <div className="section-head" style={{ marginTop: 0 }}>
           <h3 className="section-title">Attendance Session</h3>
@@ -186,6 +179,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               <select
                 id="mark-classroom"
                 value={classroomId}
+                disabled={saving}
                 onChange={e => chooseClassroom(e.target.value)}
               >
                 <option value="">Select Classroom</option>
@@ -204,7 +198,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               id="mark-subject"
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              disabled={!classroomId}
+              disabled={!selectionReady || saving}
             >
               <option value="">Select Subject</option>
               {subs.map(s => (
@@ -221,12 +215,13 @@ export default function TeacherDashboard({ user, onLogout }) {
               id="mark-date"
               type="date"
               value={date}
+              disabled={saving}
               onChange={e => setDate(e.target.value)}
             />
           </div>
         </div>
 
-        {classroomId && !subs.length && (
+        {selectionReady && !subs.length && (
           <p className="info-hint">No subjects are assigned to you in this classroom yet.</p>
         )}
 
@@ -252,7 +247,13 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <tr>
                   <td colSpan={2}>
                     <div className="empty-state" style={{ border: "none", background: "none" }}>
-                      No students available yet.
+                      {!classroomId
+                        ? "Select a classroom to view its students."
+                        : teachingError
+                          ? "Could not load this classroom."
+                          : !selectionReady
+                            ? "Loading classroom students..."
+                            : "No students enrolled in this classroom."}
                     </div>
                   </td>
                 </tr>
@@ -266,7 +267,7 @@ export default function TeacherDashboard({ user, onLogout }) {
             type="button"
             className="btn-primary-save"
             onClick={save}
-            disabled={saving || !date || !subject || markedCount === 0}
+            disabled={saving || !selectionReady || !date || !subject || markedCount === 0}
           >
             <Icon name="save" size={16} />
             {saving ? "Saving..." : "Save Attendance"}
@@ -286,7 +287,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         />
 
         <div className="stat-grid" style={{ marginBottom: 20 }}>
-          <StatCard icon="database" label="Records" value={(records || []).length} />
+          <StatCard icon="database" label="Records" value={records.length} />
           <StatCard icon="book" label="Subjects" value={columns.length} tone="tone-slate" />
           <StatCard icon="calendar" label="Dates" value={dates.length} tone="tone-slate" />
         </div>
@@ -323,9 +324,11 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             </div>
 
-            {loading ? (
+            {recordError ? (
+              <div className="error-banner" role="alert">{recordError}</div>
+            ) : loading || !recordData ? (
               <LoadingState label="Loading saved attendance..." />
-            ) : stu.length && columns.length ? (
+            ) : recordStudents.length && columns.length ? (
               <div className="table-wrap">
                 <table>
                   <thead>
@@ -340,7 +343,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {stu.map(s => {
+                    {recordStudents.map(s => {
                       const m = byStudent[s.id];
                       const counts = columns.reduce(
                         (a, sub) => {

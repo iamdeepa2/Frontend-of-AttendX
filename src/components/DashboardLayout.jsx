@@ -66,6 +66,7 @@ function Sidebar({ user, navItems, onNavigate, onLogout, open, onClose }) {
 
 function TopHeader({ title, breadcrumb, user, onMenu, menuOpen, menuRef }) {
   return (
+    <div className="navbar-shell">
     <header className="header">
       <div className="header-left">
         <button
@@ -97,6 +98,7 @@ function TopHeader({ title, breadcrumb, user, onMenu, menuOpen, menuRef }) {
         </div>
       </div>
     </header>
+    </div>
   );
 }
 
@@ -132,7 +134,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" data-role={user?.user_type}>
       <a className="skip-link" href="#main-content">Skip to content</a>
       <TopHeader
         title={title}

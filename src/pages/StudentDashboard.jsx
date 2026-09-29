@@ -8,7 +8,6 @@ import {
   LoadingState,
   Alert,
   ProgressBar,
-  StatusBadge,
 } from "../components/ui";
 import { scrollToSection } from "../lib/helpers";
 import { studentSummary } from "../lib/attendance";
@@ -19,13 +18,11 @@ function Gauge({ percent }) {
   const color =
     percent >= REQUIRED
       ? "var(--green-600)"
-      : percent > 0
-        ? "var(--amber-600)"
-        : "var(--border-strong)";
+      : "var(--absent-count)";
   return (
     <div className="gauge" style={{ "--pct": percent, "--gauge-color": color }}>
       <div className="gauge-inner">
-        <div className="gauge-value">{percent}%</div>
+        <div className="gauge-value" style={{ color }}>{percent}%</div>
         <div className="gauge-label">Overall</div>
       </div>
     </div>
@@ -56,7 +53,6 @@ export default function StudentDashboard({ user, onLogout }) {
     <DashboardLayout
       user={user}
       title="My Attendance"
-      breadcrumb="Student / Overview"
       navItems={navItems}
       onLogout={onLogout}
     >
@@ -99,7 +95,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     </div>
                     <div className="att-metric">
                       <div className="am-label">Absent</div>
-                      <div className="am-value" style={{ color: "var(--red-700)" }}>
+                      <div className="am-value" style={{ color: "var(--absent-count)" }}>
                         {absent}
                       </div>
                     </div>
@@ -109,8 +105,7 @@ export default function StudentDashboard({ user, onLogout }) {
 
               {percent < REQUIRED ? (
                 <Alert tone="error" title={`Your attendance is below the required ${REQUIRED}%.`}>
-                  You have attended {present} of {total} classes ({percent}%). Aim for at least {REQUIRED}% to
-                  stay eligible.
+                  You have attended {present} of {total} classes ({percent}%).
                 </Alert>
               ) : (
                 <Alert tone="success" title="You are in good standing.">
@@ -138,7 +133,7 @@ export default function StudentDashboard({ user, onLogout }) {
       )}
 
       <section id="att-subjects" style={{ marginTop: 32 }}>
-        <PageHeader title="Subject-wise Attendance" subtitle="How your attendance splits across each subject." />
+        <PageHeader title="Subject-wise Attendance" />
         {subjectRows.length ? (
           <div className="table-wrap">
             <table>
@@ -149,7 +144,6 @@ export default function StudentDashboard({ user, onLogout }) {
                   <th>Present</th>
                   <th>Absent</th>
                   <th>Total</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,19 +157,12 @@ export default function StudentDashboard({ user, onLogout }) {
                       <td>
                         <div className="subject-progress">
                           <ProgressBar percent={r.percent} good={good} />
-                          <span className="sp-pct">{r.percent}%</span>
+                          <span className="sp-pct" style={{ color: good ? "var(--green-600)" : "var(--absent-count)" }}>{r.percent}%</span>
                         </div>
                       </td>
                       <td style={{ color: "var(--green-700)", fontWeight: 600 }}>{r.pre}</td>
-                      <td style={{ color: "var(--red-700)", fontWeight: 600 }}>{r.abs}</td>
+                      <td style={{ color: "var(--absent-count)", fontWeight: 600 }}>{r.abs}</td>
                       <td>{r.total}</td>
-                      <td>
-                        {good ? (
-                          <StatusBadge tone="present">Good standing</StatusBadge>
-                        ) : (
-                          <StatusBadge tone="amber">Needs attention</StatusBadge>
-                        )}
-                      </td>
                     </tr>
                   );
                 })}
@@ -192,7 +179,7 @@ export default function StudentDashboard({ user, onLogout }) {
       </section>
 
       <section id="att-teachers" style={{ marginTop: 32 }}>
-        <PageHeader title="Teachers & Subjects" subtitle="Who teaches you, and what they cover." />
+        <PageHeader title="Teachers & Subjects" />
         {teach.length ? (
           <div className="table-wrap">
             <table>
@@ -224,7 +211,7 @@ export default function StudentDashboard({ user, onLogout }) {
       </section>
 
       <section style={{ marginTop: 32 }}>
-        <PageHeader title="Available Subjects" subtitle="Subjects offered in your classroom." />
+        <PageHeader title="Available Subjects" />
         {subj.length ? (
           <div className="table-wrap">
             <table>

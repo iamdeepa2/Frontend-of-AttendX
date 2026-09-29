@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useState } from "react";
 import useAsync from "../hooks/useAsync";
 import { api } from "../api/client";
@@ -54,9 +55,10 @@ export default function AdminDashboard({ user, onLogout }) {
       if (isEdit) await api.updateClassroom({ id: editing, name: name.trim() });
       else await api.createClassroom(name.trim());
       await cls.reload();
+      toast.success(isEdit ? "Classroom updated." : "Classroom created.");
       closeForm();
     } catch (err) {
-      setError(err.message || "Failed to save.");
+      toast.error(err.message || "Failed to save.");
     } finally {
       setSaving(false);
     }
@@ -67,11 +69,12 @@ export default function AdminDashboard({ user, onLogout }) {
     if (!confirm(warn)) return;
     try {
       await api.deleteClassroom(classroom.id);
+      toast.success("Classroom deleted.");
       await cls.reload();
       if (viewId === classroom.id) setViewId(null);
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to delete.");
+      toast.error(err.message || "Failed to delete.");
     }
   }
 
@@ -94,7 +97,6 @@ export default function AdminDashboard({ user, onLogout }) {
     <DashboardLayout
       user={user}
       title="Admin Dashboard"
-      breadcrumb="Overview"
       navItems={navItems}
       onLogout={onLogout}
     >

@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useState } from "react";
 import useAsync from "../hooks/useAsync";
 import { api } from "../api/client";
 import DashboardLayout from "../components/DashboardLayout";
 import PersonSection from "../components/PersonSection";
 import Icon from "../components/Icon";
-import { StatCard, LoadingState, Alert } from "../components/ui";
+import { StatCard, LoadingState } from "../components/ui";
 
-const MESSAGE_MS = 4000;
 const DEFAULT_PASSWORD = "password123";
 
 // `id` drives which tab is active; `kind` is the record type PersonSection
@@ -62,10 +62,7 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
     [classroomId]
   );
 
-  const [message, setMessage] = useState("");
-  const [formError, setFormError] = useState("");
   const [tab, setTab] = useState("students");
-  const timer = useRef(null);
 
   const students = data?.students || [];
   const teachers = data?.teachers || [];
@@ -89,29 +86,21 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
   // Only the data differs per tab; the handlers are wired up inline below.
   const sectionProps = (kind) => ({ kind, rows: rows[kind], available: available[kind] });
 
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  function flash(text) {
-    clearTimeout(timer.current);
-    setMessage(text);
-    timer.current = setTimeout(() => setMessage(""), MESSAGE_MS);
-  }
-
-  // Refreshes this page and the classroom list counts after every change.
+  // Refresh both views after a successful mutation.
   function after(text) {
-    flash(text);
-    return reload().then(() => onChanged?.());
+    reload();
+    onChanged?.();
+    toast.success(text);
   }
 
   // Runs one action, surfacing API errors instead of throwing them.
   async function attempt(run) {
-    setFormError("");
     try {
       const res = await run();
       await after(res?.message || "Done.");
       return { ok: true, error: null };
     } catch (err) {
-      setFormError(err.message || "Something went wrong.");
+      toast.error(err.message || "Something went wrong.");
       return { ok: false, error: err };
     }
   }
@@ -171,13 +160,6 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
             <StatCard icon="user" label="Teachers" value={teachers.length} tone="tone-slate" />
             <StatCard icon="book" label="Subjects" value={subjects.length} tone="tone-slate" />
           </div>
-
-          {message && <Alert tone="success">{message}</Alert>}
-          {formError && (
-            <p className="error-text" style={{ marginBottom: 12 }}>
-              {formError}
-            </p>
-          )}
 
           <div className="section-tabs" role="tablist" aria-label="Classroom sections">
             {TABS.map(t => (

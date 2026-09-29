@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useState } from "react";
 import { api } from "../api/client";
 import Icon from "../components/Icon";
@@ -8,7 +9,6 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState("student");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,12 +20,13 @@ export default function Login({ onLogin }) {
     try {
       const r = await api.login({ email, password, user_type: userType });
       if (!r?.success) {
-        setError(r?.message || "Login failed. Please try again.");
+        toast.error(r?.message || "Login failed. Please try again.");
         return;
       }
+      toast.success("Signed in successfully.");
       onLogin({ id: r.user_id, name: r.name, user_type: userType });
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
+      toast.error(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,26 +64,14 @@ export default function Login({ onLogin }) {
 
             <div className="field">
               <label htmlFor="login-password">Password</label>
-              <div className="input-affix">
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  className="input-affix-btn"
-                  onClick={() => setShowPassword(v => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  tabIndex={-1}
-                >
-                  <Icon name={showPassword ? "eyeOff" : "eye"} size={18} />
-                </button>
-              </div>
+              <input
+                id="login-password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
             </div>
 
             <div className="field">
