@@ -88,7 +88,7 @@ export default function AdminDashboard({ user, onLogout }) {
   }
 
   const rows = cls.data || [];
-  const navItems = NAV.map(n => ({ ...n, active: true }));
+  const navItems = NAV.map(n => ({ ...n, active: n.id === "classrooms" }));
 
   return (
     <DashboardLayout
@@ -99,7 +99,7 @@ export default function AdminDashboard({ user, onLogout }) {
       onLogout={onLogout}
     >
       <PageHeader
-        title={`Welcome back, ${user.name}`}
+        title={<>Welcome back, <span className="greeting-name">{user.name}</span></>}
         subtitle="Manage your attendance system from one place."
       />
 
