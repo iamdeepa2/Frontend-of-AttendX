@@ -9,16 +9,12 @@ import { StatCard, LoadingState } from "../components/ui";
 
 const DEFAULT_PASSWORD = "password123";
 
-// `id` drives which tab is active; `kind` is the record type PersonSection
-// needs, and every lookup below is keyed by it.
 const TABS = [
   { id: "students", kind: "student", label: "Students", icon: "users" },
   { id: "teachers", kind: "teacher", label: "Teachers", icon: "user" },
   { id: "subjects", kind: "subject", label: "Subjects", icon: "book" },
 ];
 
-// Editing a record updates it in place, so classroom membership and
-// attendance history are untouched. Only teachers have subjects to assign.
 function recordActions(classroomId) {
   return {
     student: {
@@ -70,8 +66,6 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
 
   const actions = recordActions(classroomId);
 
-  // Both of these are keyed by TABS[].kind, so a tab and its table can never
-  // disagree about which record type they mean.
   const rows = {
     student: students,
     teacher: teachers,
@@ -83,17 +77,14 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
     subject: data?.available_subjects || [],
   };
 
-  // Only the data differs per tab; the handlers are wired up inline below.
   const sectionProps = (kind) => ({ kind, rows: rows[kind], available: available[kind] });
 
-  // Refresh both views after a successful mutation.
   function after(text) {
     reload();
     onChanged?.();
     toast.success(text);
   }
 
-  // Runs one action, surfacing API errors instead of throwing them.
   async function attempt(run) {
     try {
       const res = await run();
@@ -109,8 +100,6 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
     return (await attempt(run)).ok;
   }
 
-  // A teacher teaches many subjects, but only the ones assigned to that
-  // teacher in this classroom. Nothing is created or removed here.
   function assignSubject(row, subjectId) {
     return guard(() => api.assignSubjectToTeacher(classroomId, row.id, subjectId));
   }
@@ -199,8 +188,6 @@ export default function ClassroomDetails({ classroomId, user, onLogout, onBack, 
               onCreate={f => attempt(() => actions.teacher.create(f))}
               onEdit={(id, f) => guard(() => actions.teacher.update(id, f))}
               onRemove={row => removeRecord("teacher", row)}
-              // One teacher, many subjects, but only inside this classroom:
-              // the payload already scopes each teacher to this classroom.
               subjects={Object.fromEntries(
                 teachers.map(t => [
                   t.id,

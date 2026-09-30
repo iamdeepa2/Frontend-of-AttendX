@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import { api } from "../api/client";
 import Icon from "../components/Icon";
+import ThemeToggle from "../components/ThemeToggle";
 
 const TYPES = ["student", "teacher", "admin"];
 
@@ -35,6 +36,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-page">
       <div className="login-shell">
+        <ThemeToggle className="login-theme" />
         <div className="login-card">
           <div className="login-brand">
             <div className="login-logo" aria-hidden="true">

@@ -13,7 +13,6 @@ async function req(path, { method = "GET", body } = {}) {
   }
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    // The API always answers with { message }, so the caller can show it.
     const err = new Error(data?.message || `Request failed (${res.status})`);
     err.detail = data || {};
     throw err;
@@ -21,7 +20,6 @@ async function req(path, { method = "GET", body } = {}) {
   return data;
 }
 
-// One endpoint group, four verbs.
 const resource = (path) => ({
   list: () => req(path),
   create: (body) => req(path, { method: "POST", body }),
@@ -34,8 +32,6 @@ const teachers = resource("/teachers/");
 const subjects = resource("/subjects/");
 const classrooms = resource("/classrooms/");
 
-// Assigning a record to a classroom, or taking it off again. These never
-// create or delete the record itself, only the membership.
 const membership = (group, idKey) => {
   const path = (classroomId) => `/classrooms/${classroomId}/${group}/`;
   const send = (classroomId, objectId, method) =>
@@ -52,8 +48,6 @@ const classroomStudents = membership("students", "student_id");
 const classroomTeachers = membership("teachers", "teacher_id");
 const classroomSubjects = membership("subjects", "subject_id");
 
-// Teaching is classroom specific: the same teacher can hold different
-// subjects in different classrooms.
 const teachingPath = (classroomId, teacherId) =>
   `/classrooms/${classroomId}/teachers/${teacherId}/subjects/`;
 
@@ -72,8 +66,6 @@ export const api = {
   createStudent: students.create,
   updateStudent: students.update,
   deleteStudent: students.remove,
-  // Resolved server side from the student's own classroom, so the dashboard
-  // never has to fetch every teacher and subject to pick from them.
   getStudentDashboard: (studentId) => req(`/students/${studentId}/dashboard/`),
 
   getTeachers: teachers.list,

@@ -19,7 +19,6 @@ export default function AdminDashboard({ user, onLogout }) {
   const teachers = useAsync(() => api.getTeachers(), []);
   const subjects = useAsync(() => api.getSubjects(), []);
 
-  // null = form closed, "new" = adding, otherwise the id being edited.
   const [editing, setEditing] = useState(null);
   const [viewId, setViewId] = useState(null);
   const [name, setName] = useState("");

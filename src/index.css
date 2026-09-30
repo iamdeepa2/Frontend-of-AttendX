@@ -6,13 +6,8 @@
   font-display: swap;
 }
 
-/* ============================================================
-   AttendX Design System
-   ============================================================ */
-
 :root {
   color-scheme: light;
-  /* Brand */
   --brand-50: #edf6f1;
   --brand-100: #d8eee2;
   --brand-200: #b5d9c6;
@@ -21,8 +16,10 @@
   --brand-600: #118452;
   --brand-700: #0b6b43;
   --brand-800: #095437;
+  --brand-text: #118452;
+  --brand-fill-hi: #0b6b43;
+  --on-brand: #ffffff;
 
-  /* Neutrals */
   --bg: #f2f3f2;
   --surface: #ffffff;
   --surface-2: #f7f8f7;
@@ -31,8 +28,15 @@
   --text: #19221e;
   --text-2: #59615c;
   --text-3: #6d756f;
+  --placeholder: #7d867f;
+  --subtle: #f1f3f1;
+  --track: #e9eeea;
+  --rail: #e8ece9;
+  --page: #dedfdf;
+  --shell-border: rgba(255, 255, 255, 0.7);
+  --overlay: rgba(25, 34, 30, 0.4);
+  --card-shadow: 0 16px 60px rgba(25, 34, 30, 0.05);
 
-  /* Status */
   --green-50: #ecfdf5;
   --green-200: #a7f3d0;
   --green-600: #118452;
@@ -46,26 +50,78 @@
   --amber-200: #fde68a;
   --amber-600: #b45309;
   --amber-700: #92400e;
+  --danger-hi: #fde8e8;
+  --danger-line: #f4b8b8;
 
-  /* Shape */
   --r-sm: 12px;
   --r: 16px;
   --r-md: 24px;
   --r-lg: 28px;
   --r-full: 999px;
 
-  /* Restrained elevation */
   --shadow-xs: 0 2px 4px rgba(25, 34, 30, 0.025);
   --shadow-sm: 0 3px 12px rgba(25, 34, 30, 0.05);
   --shadow-md: 0 6px 20px rgba(25, 34, 30, 0.08);
   --shadow-focus: 0 0 0 3px rgba(17, 132, 82, 0.2);
 
-  /* Layout */
   --sidebar-w: 64px;
   --header-h: 72px;
   --pad: 28px;
 
   --ease: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #0b0f0d;
+  --bg: #121614;
+  --surface: #1a1f1d;
+  --surface-2: #222826;
+  --border: #242a28;
+  --border-strong: #333b38;
+  --text: #e9eeeb;
+  --text-2: #a9b3ae;
+  --text-3: #7f8a85;
+  --placeholder: #6c7671;
+  --subtle: #222826;
+  --track: #2a322f;
+  --rail: #262d2a;
+  --shell-border: rgba(255, 255, 255, 0.08);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --card-shadow: 0 16px 60px rgba(0, 0, 0, 0.45);
+
+  --brand-50: #12241c;
+  --brand-100: #16301f;
+  --brand-200: #1d3d2a;
+  --brand-text: #5ccf9a;
+  --brand-400: #46b483;
+  --brand-500: #35a06f;
+  --brand-fill-hi: #0f6b46;
+  --brand-700: #6fd6a8;
+  --brand-800: #8ee0bb;
+  --on-brand: #ffffff;
+
+  --green-50: #0f2a1e;
+  --green-200: #1e5540;
+  --green-600: #34c98a;
+  --green-700: #6fe0ab;
+  --red-50: #2c1516;
+  --red-200: #5e2626;
+  --red-600: #f87171;
+  --red-700: #fca5a5;
+  --danger-hi: #3a1d1e;
+  --danger-line: #7a2f2f;
+  --absent-count: #f87171;
+  --amber-50: #2a2110;
+  --amber-200: #5c4718;
+  --amber-600: #fbbf24;
+  --amber-700: #fcd34d;
+
+  --shadow-xs: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --shadow-focus: 0 0 0 3px rgba(92, 207, 154, 0.35);
 }
 
 * {
@@ -84,7 +140,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   color: var(--text);
-  background: #dedfdf;
+  background: var(--page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -102,16 +158,11 @@ a {
   color: var(--brand-600);
 }
 
-/* Focus visibility (accessibility) */
 :focus-visible {
   outline: 2px solid var(--brand-600);
   outline-offset: 2px;
   border-radius: 6px;
 }
-
-/* ============================================================
-   Buttons
-   ============================================================ */
 
 button {
   font-family: inherit;
@@ -121,7 +172,7 @@ button {
   padding: 10px 16px;
   min-height: 40px;
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   border: 1px solid transparent;
   border-radius: var(--r-full);
   cursor: pointer;
@@ -153,7 +204,6 @@ button:focus-visible {
   box-shadow: var(--shadow-focus);
 }
 
-/* Secondary / neutral */
 .btn-secondary {
   background: var(--surface);
   color: var(--text-2);
@@ -166,7 +216,6 @@ button:focus-visible {
   border-color: var(--text-3);
 }
 
-/* Destructive, restrained */
 .btn-danger {
   background: var(--red-50);
   color: var(--red-700);
@@ -174,12 +223,11 @@ button:focus-visible {
 }
 
 .btn-danger:hover {
-  background: #fde8e8;
+  background: var(--danger-hi);
   color: var(--red-700);
-  border-color: #f4b8b8;
+  border-color: var(--danger-line);
 }
 
-/* Ghost icon-ish button */
 .btn-ghost {
   background: transparent;
   color: var(--text-2);
@@ -225,10 +273,6 @@ button:focus-visible {
   box-shadow: var(--shadow-focus);
 }
 
-/* ============================================================
-   Forms
-   ============================================================ */
-
 input,
 select,
 textarea {
@@ -247,7 +291,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #7d867f;
+  color: var(--placeholder);
 }
 
 input:focus,
@@ -280,15 +324,11 @@ label {
   margin: 0 0 4px;
 }
 
-/* ============================================================
-   App shell: sidebar + header + content
-   ============================================================ */
-
 .dashboard {
   min-height: calc(100vh - 28px);
   margin: 14px;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--shell-border);
   border-radius: 24px;
   background: var(--bg);
 }
@@ -318,7 +358,7 @@ label {
   height: 38px;
   border-radius: 50%;
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -385,12 +425,12 @@ label {
 
 .nav-item.active {
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   font-weight: 600;
 }
 
 .nav-item.active .nav-icon {
-  color: #fff;
+  color: var(--on-brand);
 }
 
 .nav-item .nav-icon {
@@ -424,7 +464,7 @@ label {
   height: 36px;
   border-radius: var(--r-full);
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -458,7 +498,6 @@ label {
   display: none;
 }
 
-/* Main column */
 .main-column {
   flex: 1;
   min-width: 0;
@@ -572,7 +611,6 @@ label {
   padding: 4px 10px 20px;
 }
 
-/* Legacy header classes kept for compatibility */
 .header-brand {
   display: flex;
   align-items: baseline;
@@ -588,10 +626,6 @@ label {
   color: var(--text-3);
   font-size: 13px;
 }
-
-/* ============================================================
-   Page header
-   ============================================================ */
 
 .page-header {
   margin: 0 0 24px;
@@ -620,10 +654,6 @@ label {
   font-weight: 650;
   margin: 0;
 }
-
-/* ============================================================
-   Cards & stat cards
-   ============================================================ */
 
 .card {
   background: var(--surface);
@@ -703,7 +733,7 @@ label {
   color: var(--amber-600);
 }
 .stat-icon.tone-slate {
-  background: #f1f3f1;
+  background: var(--subtle);
   color: var(--text-2);
 }
 
@@ -733,17 +763,12 @@ label {
   margin-top: 2px;
 }
 
-/* Legacy "cards" row */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin: 20px 0;
 }
-
-/* ============================================================
-   Admin sections
-   ============================================================ */
 
 .admin-section {
   margin-bottom: 24px;
@@ -888,7 +913,6 @@ label {
   color: var(--text);
 }
 
-/* Tabs (classroom details) */
 .section-tabs {
   display: flex;
   gap: 4px;
@@ -896,7 +920,7 @@ label {
   width: fit-content;
   max-width: 100%;
   padding: 5px;
-  background: #e8ece9;
+  background: var(--rail);
   border-radius: 24px;
   margin-bottom: 22px;
 }
@@ -927,7 +951,7 @@ label {
   display: inline-block;
   margin-left: 7px;
   font-size: 12px;
-  background: #f1f3f1;
+  background: var(--subtle);
   color: var(--text-2);
   border-radius: var(--r-full);
   padding: 1px 8px;
@@ -938,7 +962,6 @@ label {
   color: var(--brand-700);
 }
 
-/* Subject chips */
 .subject-chips {
   list-style: none;
   margin: 0 0 8px;
@@ -984,10 +1007,6 @@ label {
   background: none;
   color: var(--red-600);
 }
-
-/* ============================================================
-   Tables
-   ============================================================ */
 
 .table-wrap {
   overflow-x: auto;
@@ -1060,10 +1079,6 @@ td.actions button {
   margin: 0;
 }
 
-/* ============================================================
-   Badges / status
-   ============================================================ */
-
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1097,7 +1112,7 @@ td.actions button {
 }
 
 .badge-neutral {
-  background: #f1f3f1;
+  background: var(--subtle);
   color: var(--text-2);
   border-color: var(--border);
 }
@@ -1135,10 +1150,6 @@ td.actions button {
 .matrix-cell .status-none {
   text-align: center;
 }
-
-/* ============================================================
-   Banners / loading / empty
-   ============================================================ */
 
 .info-banner {
   background: var(--green-50);
@@ -1225,16 +1236,12 @@ td.actions button {
   margin: 0 auto;
 }
 
-/* ============================================================
-   Login
-   ============================================================ */
-
 .login-page {
   min-height: 100dvh;
   display: flex;
   padding: 40px 20px;
   background: var(--bg);
-  border: 14px solid #dedfdf;
+  border: 14px solid var(--page);
   overflow-y: auto;
 }
 
@@ -1246,15 +1253,20 @@ td.actions button {
   margin: auto;
 }
 
+.login-theme {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 .login-card {
   background: var(--surface);
   border: 1px solid var(--surface);
   border-radius: 30px;
-  box-shadow: 0 16px 60px rgba(25, 34, 30, 0.05);
+  box-shadow: var(--card-shadow);
   padding: 38px 36px 34px;
 }
 
-/* Compact brand block */
 .login-brand {
   display: flex;
   flex-direction: column;
@@ -1268,7 +1280,7 @@ td.actions button {
   height: 44px;
   border-radius: 12px;
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1330,7 +1342,7 @@ td.actions button {
   min-height: 48px;
   margin-top: 4px;
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   font-size: 15px;
   font-weight: 600;
   border-radius: 10px;
@@ -1360,8 +1372,6 @@ td.actions button {
   margin: 20px 0 0;
 }
 
-/* Keep the full login interface visible on short laptop/mobile viewports
-   by trimming vertical rhythm instead of forcing a fixed height. */
 @media (max-height: 720px) {
   .login-brand {
     margin-bottom: 20px;
@@ -1385,10 +1395,6 @@ td.actions button {
     margin-top: 15px;
   }
 }
-
-/* ============================================================
-   Attendance (teacher)
-   ============================================================ */
 
 .attendance-box {
   background: var(--surface);
@@ -1451,7 +1457,6 @@ td.actions button {
   padding-left: 20px;
 }
 
-/* Segmented Present / Absent control */
 .seg {
   display: inline-flex;
   border: 1px solid var(--border-strong);
@@ -1475,13 +1480,13 @@ td.actions button {
 }
 
 .seg-btn:hover {
-  background: #f1f3f1;
+  background: var(--subtle);
   color: var(--text);
 }
 
 .seg-btn.seg-present.active {
   background: var(--brand-600);
-  color: #fff;
+  color: var(--on-brand);
   box-shadow: none;
 }
 
@@ -1516,10 +1521,6 @@ td.actions button {
   color: var(--text-2);
 }
 
-/* ============================================================
-   Student attendance hero
-   ============================================================ */
-
 .att-hero {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -1545,7 +1546,7 @@ td.actions button {
   margin: 0 auto;
   background: conic-gradient(
     var(--gauge-color, var(--brand-600)) calc(var(--pct) * 1%),
-    #e9eeea 0
+    var(--track) 0
   );
 }
 
@@ -1616,12 +1617,11 @@ td.actions button {
   margin-top: 2px;
 }
 
-/* Progress bars */
 .progress {
   height: 8px;
   width: 160px;
   min-width: 110px;
-  background: #e9eeea;
+  background: var(--track);
   border-radius: var(--r-full);
   overflow: hidden;
 }
@@ -1651,10 +1651,6 @@ td.actions button {
   min-width: 44px;
   text-align: right;
 }
-
-/* ============================================================
-   Classroom detail cards
-   ============================================================ */
 
 .summary-grid {
   display: grid;
@@ -1722,7 +1718,7 @@ td.actions button {
 
 .stat-grid > .stat-card:first-child .stat-icon,
 .summary-grid > .stat-card:first-child .stat-icon {
-  background: #f1f3f1;
+  background: var(--subtle);
   color: var(--text-2);
 }
 
@@ -1752,7 +1748,7 @@ tbody tr:nth-child(even) {
 }
 
 tbody td {
-  border-bottom-color: #f1f3f1;
+  border-bottom-color: var(--subtle);
 }
 
 .badge {
@@ -1768,7 +1764,7 @@ tbody td {
 .gauge {
   background: conic-gradient(
     var(--gauge-color, var(--brand-600)) calc(var(--pct) * 1%),
-    #e9eeea 0
+    var(--track) 0
   );
 }
 
@@ -1811,10 +1807,6 @@ section[id],
 #att-overview {
   scroll-margin-top: 115px;
 }
-
-/* ============================================================
-   Responsive
-   ============================================================ */
 
 @media (max-width: 1024px) {
   :root {
@@ -1911,7 +1903,7 @@ section[id],
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(25, 34, 30, 0.4);
+    background: var(--overlay);
     z-index: 35;
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
+import ThemeToggle from "./ThemeToggle";
 import { initialsOf } from "../lib/helpers";
 
 function Brand() {
@@ -87,6 +88,7 @@ function TopHeader({ title, breadcrumb, user, onMenu, menuOpen, menuRef }) {
         {breadcrumb && <div className="breadcrumb">{breadcrumb}</div>}
       </div>
       <div className="header-right">
+        <ThemeToggle />
         <div className="header-user">
           <div className="avatar avatar-soft" style={{ width: 30, height: 30, fontSize: 12 }}>
             {initialsOf(user?.name)}
@@ -125,7 +127,6 @@ export default function DashboardLayout({
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen]);
 
-  // Close the mobile drawer when the viewport grows to desktop.
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 901px)");
     const close = () => mq.matches && setMenuOpen(false);

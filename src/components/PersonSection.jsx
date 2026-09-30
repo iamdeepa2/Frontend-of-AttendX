@@ -5,13 +5,6 @@ import { EmptyState } from "./ui";
 const DEFAULT_PASSWORD = "password123";
 const EMPTY_FORM = { name: "", email: "", phone: "", password: "" };
 
-/**
- * One classroom membership table: the records already in the classroom, plus
- * the two ways of adding to it (create a new one, or assign an existing one).
- *
- * `kind` is "student", "teacher" or "subject". Only "teacher" gets the extra
- * `subjects` column, which is what decides whether teaching can be assigned.
- */
 export default function PersonSection({
   title,
   kind,
@@ -25,7 +18,6 @@ export default function PersonSection({
   onAssignSubject,
   onUnassignSubject,
 }) {
-  // Which of the two add-panels is open; null closes both.
   const [panel, setPanel] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [duplicate, setDuplicate] = useState(null);
@@ -40,7 +32,6 @@ export default function PersonSection({
   const nameField = isSubject ? "Subject" : "Name";
   const columns = isSubject ? 2 : subjects ? 5 : 4;
 
-  // Closes the add-panels and drops whatever was typed into them.
   function closePanels() {
     setPanel(null);
     setEditingId(null);
@@ -67,7 +58,6 @@ export default function PersonSection({
     setPanel(null);
   }
 
-  // Runs one action with the busy flag held, and reports whether it worked.
   async function run(action) {
     setBusy(true);
     try {
@@ -85,7 +75,6 @@ export default function PersonSection({
         closePanels();
         return;
       }
-      // A teacher who already exists gets assigned, never created again.
       const existingId = res.error?.detail?.existing_teacher_id;
       if (existingId) {
         setDuplicate({

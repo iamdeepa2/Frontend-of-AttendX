@@ -30,8 +30,6 @@ function Gauge({ percent }) {
 }
 
 export default function StudentDashboard({ user, onLogout }) {
-  // The backend resolves the classroom from this student and returns only
-  // that classroom's teachers, subjects and attendance.
   const { data, loading, error } = useAsync(() => api.getStudentDashboard(user.id), [user.id]);
 
   const rooms = data?.classrooms || [];

@@ -76,7 +76,6 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [saving, setSaving] = useState(false);
   const [filterDate, setFilterDate] = useState("");
 
-  // A classroom switch invalidates the picked subject and marks.
   function chooseClassroom(value) {
     setTeaching(null);
     setClassroomId(value);
@@ -97,7 +96,6 @@ export default function TeacherDashboard({ user, onLogout }) {
   const markedCount = stu.filter(s => marks[s.id] != null).length;
   const presentCount = stu.filter(s => marks[s.id] === true).length;
 
-  // Build the saved table exclusively from the teacher-scoped API response.
   const saved = records;
   const recordStudents = [...new Map(saved.map(r => [r.student_id, {
     id: r.student_id, name: r.student_name,

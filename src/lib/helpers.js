@@ -1,6 +1,3 @@
-// Small view helpers kept outside the component file so React Fast Refresh
-// only ever sees component exports.
-
 export function scrollToSection(id) {
   const el = document.getElementById(id);
   if (!el) return;
