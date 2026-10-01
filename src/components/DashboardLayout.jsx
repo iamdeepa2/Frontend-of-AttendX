@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
-import ThemeToggle from "./ThemeToggle";
 import { initialsOf } from "../lib/helpers";
 
 function Brand() {
   return (
     <div className="sidebar-brand">
-      <div className="brand-mark">AX</div>
+      <img className="brand-mark" src="/attendx-logo.png" alt="AttendX" />
       <div className="brand-text">
         <div className="brand-name">AttendX</div>
         <div className="brand-sub">Attendance System</div>
@@ -88,7 +87,6 @@ function TopHeader({ title, breadcrumb, user, onMenu, menuOpen, menuRef }) {
         {breadcrumb && <div className="breadcrumb">{breadcrumb}</div>}
       </div>
       <div className="header-right">
-        <ThemeToggle />
         <div className="header-user">
           <div className="avatar avatar-soft" style={{ width: 30, height: 30, fontSize: 12 }}>
             {initialsOf(user?.name)}
@@ -135,7 +133,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="dashboard" data-role={user?.user_type}>
+    <div className="dashboard">
       <a className="skip-link" href="#main-content">Skip to content</a>
       <TopHeader
         title={title}

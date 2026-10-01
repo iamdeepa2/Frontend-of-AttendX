@@ -2,14 +2,10 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import { api } from "../api/client";
 import Icon from "../components/Icon";
-import ThemeToggle from "../components/ThemeToggle";
-
-const TYPES = ["student", "teacher", "admin"];
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState("student");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,13 +15,13 @@ export default function Login({ onLogin }) {
     if (!email || !password) return setError("Enter email and password");
     setLoading(true);
     try {
-      const r = await api.login({ email, password, user_type: userType });
+      const r = await api.login({ email, password, user_type: "admin" });
       if (!r?.success) {
         toast.error(r?.message || "Login failed. Please try again.");
         return;
       }
       toast.success("Signed in successfully.");
-      onLogin({ id: r.user_id, name: r.name, user_type: userType });
+      onLogin({ id: r.user_id, name: r.name, user_type: "admin" });
     } catch (err) {
       toast.error(err.message || "Login failed. Please try again.");
     } finally {
@@ -36,19 +32,16 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-page">
       <div className="login-shell">
-        <ThemeToggle className="login-theme" />
         <div className="login-card">
           <div className="login-brand">
-            <div className="login-logo" aria-hidden="true">
-              AX
-            </div>
+            <img className="login-logo" src="/attendx-logo.png" alt="AttendX" />
             <div className="login-name">AttendX</div>
             <p className="login-tagline">Attendance Management System</p>
           </div>
 
           <div className="login-head">
             <h1>Welcome back</h1>
-            <p>Sign in to continue to AttendX.</p>
+            <p>Sign in with your admin account to continue to AttendX.</p>
           </div>
 
           <form className="login-form" onSubmit={submit} noValidate>
@@ -74,21 +67,6 @@ export default function Login({ onLogin }) {
                 onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
-            </div>
-
-            <div className="field">
-              <label htmlFor="login-type">Role</label>
-              <select
-                id="login-type"
-                value={userType}
-                onChange={e => setUserType(e.target.value)}
-              >
-                {TYPES.map(t => (
-                  <option key={t} value={t}>
-                    {t[0].toUpperCase() + t.slice(1)}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {error && (

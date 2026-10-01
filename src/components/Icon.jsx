@@ -34,27 +34,7 @@ const PATHS = {
       <path d="M19 21V11l-6-4" />
     </>
   ),
-  clipboard: (
-    <>
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-      <rect x="8" y="2" width="8" height="4" rx="1" />
-      <path d="M9 13l2 2 4-4" />
-    </>
-  ),
-  check: <path d="M20 6L9 17l-5-5" />,
-  checkCircle: (
-    <>
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <path d="M22 4L12 14.01l-3-3" />
-    </>
-  ),
   x: <path d="M18 6L6 18M6 6l12 12" />,
-  xCircle: (
-    <>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M15 9l-6 6M9 9l6 6" />
-    </>
-  ),
   alert: (
     <>
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -86,12 +66,6 @@ const PATHS = {
     <>
       <path d="M3 6h18" />
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </>
-  ),
-  calendar: (
-    <>
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
     </>
   ),
   filter: <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />,
@@ -145,14 +119,6 @@ const PATHS = {
       <path d="M2 12l10 5 10-5" />
     </>
   ),
-  grid: (
-    <>
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-    </>
-  ),
   mail: (
     <>
       <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -185,26 +151,6 @@ const PATHS = {
       <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" />
     </>
   ),
-  save: (
-    <>
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-      <path d="M17 21v-8H7v8M7 3v5h8" />
-    </>
-  ),
-  database: (
-    <>
-      <ellipse cx="12" cy="5" rx="9" ry="3" />
-      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-    </>
-  ),
-  sun: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </>
-  ),
-  moon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />,
 };
 
 export default function Icon({ name, size = 18, strokeWidth = 1.75, className, ...rest }) {

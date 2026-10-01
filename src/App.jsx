@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import Login from "./pages/Login";
-import StudentDashboard from "./pages/StudentDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
 const STORAGE_KEY = "attendx_user";
 
+function readStoredUser() {
+  try {
+    const user = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return user?.user_type === "admin" ? user : null;
+  } catch {
+    return null;
+  }
+}
+
 function App() {
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(readStoredUser);
 
   useEffect(() => {
     if (user) {
@@ -24,6 +25,11 @@ function App() {
   }, [user]);
 
   function handleLogin(userInfo) {
+    if (userInfo?.user_type !== "admin") {
+      localStorage.removeItem(STORAGE_KEY);
+      setUser(null);
+      return;
+    }
     setUser(userInfo);
   }
 
@@ -33,14 +39,6 @@ function App() {
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
-  }
-
-  if (user.user_type === "student") {
-    return <StudentDashboard user={user} onLogout={handleLogout} />;
-  }
-
-  if (user.user_type === "teacher") {
-    return <TeacherDashboard user={user} onLogout={handleLogout} />;
   }
 
   return <AdminDashboard user={user} onLogout={handleLogout} />;

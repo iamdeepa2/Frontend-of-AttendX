@@ -66,15 +66,11 @@ export const api = {
   createStudent: students.create,
   updateStudent: students.update,
   deleteStudent: students.remove,
-  getStudentDashboard: (studentId) => req(`/students/${studentId}/dashboard/`),
 
   getTeachers: teachers.list,
   createTeacher: teachers.create,
   updateTeacher: teachers.update,
   deleteTeacher: teachers.remove,
-  getTeacherClassrooms: (teacherId) => req(`/teachers/${teacherId}/classrooms/`),
-  getTeacherClassroom: (teacherId, classroomId) =>
-    req(`/teachers/${teacherId}/classrooms/${classroomId}/`),
 
   getSubjects: subjects.list,
   createSubject: (name, classroomId) =>
@@ -103,13 +99,4 @@ export const api = {
   getTeacherSubjects: teaching.list,
   assignSubjectToTeacher: teaching.add,
   removeSubjectFromTeacher: teaching.remove,
-
-  getAttendance: ({ teacherId, studentId, classroomId } = {}) => {
-    const q = new URLSearchParams();
-    if (teacherId) q.set("teacher_id", teacherId);
-    if (studentId) q.set("student_id", studentId);
-    if (classroomId) q.set("classroom_id", classroomId);
-    return req(`/attendance/?${q}`);
-  },
-  markAttendance: (record) => req("/attendance/", { method: "POST", body: record }),
 };
